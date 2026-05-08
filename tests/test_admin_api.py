@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.auth import _create_user
 from main import _create_session_token, app
 
 
@@ -169,6 +170,43 @@ class AdminApiTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('id="adminApp"', response.text)
         self.assertIn('action="/logout"', response.text)
+        self.assertIn("/api/v1/admin/users", response.text)
+        self.assertIn("普通用户", response.text)
+        self.assertIn("toggleUserStatus", response.text)
+
+    def test_admin_can_list_users_without_password_hash(self):
+        created = _create_user("alice", "alice@example.com", "secret123")
+        self._login()
+
+        response = self.client.get("/api/v1/admin/users")
+
+        self.assertEqual(response.status_code, 200)
+        users = response.json()["data"]["users"]
+        self.assertEqual(users[0]["id"], created["id"])
+        self.assertEqual(users[0]["username"], "alice")
+        self.assertNotIn("password_hash", users[0])
+
+    def test_admin_can_disable_enable_and_delete_user(self):
+        created = _create_user("alice", "alice@example.com", "secret123")
+        self._login()
+
+        disabled = self.client.patch(
+            f"/api/v1/admin/users/{created['id']}",
+            json={"status": "disabled"},
+        )
+        enabled = self.client.patch(
+            f"/api/v1/admin/users/{created['id']}",
+            json={"status": "active"},
+        )
+        deleted = self.client.delete(f"/api/v1/admin/users/{created['id']}")
+        listed = self.client.get("/api/v1/admin/users")
+
+        self.assertEqual(disabled.status_code, 200)
+        self.assertEqual(disabled.json()["data"]["user"]["status"], "disabled")
+        self.assertEqual(enabled.status_code, 200)
+        self.assertEqual(enabled.json()["data"]["user"]["status"], "active")
+        self.assertEqual(deleted.status_code, 200)
+        self.assertEqual(listed.json()["data"]["users"], [])
 
 
 if __name__ == "__main__":

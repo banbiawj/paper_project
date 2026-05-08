@@ -8,7 +8,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.auth import _current_admin
+from app.auth import _current_admin, _now_string, _public_user, _read_users, _write_users
 
 router = APIRouter()
 
@@ -44,6 +44,10 @@ class EntryDeleteRequest(BaseModel):
     book: str
     category: str
     word: str
+
+
+class UserStatusRequest(BaseModel):
+    status: str
 
 
 def _ok(data: Any, message: str = "succeed") -> dict[str, Any]:
@@ -323,6 +327,65 @@ def _handle_exception(exc: Exception) -> JSONResponse:
     if isinstance(exc, FileNotFoundError):
         return _error(404, str(exc))
     return _error(500, f"admin api failed: {exc}")
+
+
+@router.get("/users")
+async def users(request: Request):
+    if auth_error := _auth_error(request):
+        return auth_error
+    try:
+        return _ok({"users": [_public_user(user) for user in _read_users()]})
+    except Exception as exc:
+        return _handle_exception(exc)
+
+
+@router.patch("/users/{user_id}")
+async def update_user_status(
+    request: Request,
+    user_id: str,
+    payload: UserStatusRequest,
+):
+    if auth_error := _auth_error(request):
+        return auth_error
+    try:
+        status = (payload.status or "").strip()
+        if status not in {"active", "disabled"}:
+            raise ValueError("用户状态只能是 active 或 disabled")
+
+        users = _read_users()
+        now = _now_string()
+        for user in users:
+            if str(user.get("id", "")) == user_id:
+                user["status"] = status
+                user["updated_at"] = now
+                _write_users(users)
+                return _ok({"user": _public_user(user)}, "user updated")
+        return _error(404, "用户不存在")
+    except Exception as exc:
+        return _handle_exception(exc)
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(request: Request, user_id: str):
+    if auth_error := _auth_error(request):
+        return auth_error
+    try:
+        users = _read_users()
+        kept_users = []
+        deleted_user = None
+        for user in users:
+            if str(user.get("id", "")) == user_id:
+                deleted_user = user
+            else:
+                kept_users.append(user)
+
+        if not deleted_user:
+            return _error(404, "用户不存在")
+
+        _write_users(kept_users)
+        return _ok({"user": _public_user(deleted_user)}, "user deleted")
+    except Exception as exc:
+        return _handle_exception(exc)
 
 
 @router.get("/summary")

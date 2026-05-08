@@ -535,6 +535,11 @@
             font-weight: 800;
         }
 
+        .badge.disabled {
+            background: #f2f4f7;
+            color: #57606a;
+        }
+
         .notice {
             display: flex;
             align-items: center;
@@ -929,22 +934,53 @@
                     <div class="panel">
                         <div class="panel-header">
                             <div>
-                                <div class="panel-title">管理员账号</div>
-                                <div class="panel-subtitle">当前登录账号</div>
+                                <div class="panel-title">普通用户</div>
+                                <div class="panel-subtitle">JSON 用户账号</div>
                             </div>
+                            <button class="btn" type="button" @click="loadUsers">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                <span>刷新</span>
+                            </button>
                         </div>
-                        <table class="data-table">
+                        <table class="data-table" v-if="users.length">
                             <thead>
-                                <tr><th>账号</th><th>角色</th><th>状态</th></tr>
+                                <tr>
+                                    <th>账号</th>
+                                    <th>邮箱</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>最后登录</th>
+                                    <th>操作</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="entry-word">{{ admin_user or 'admin' }}</td>
-                                    <td>超级管理员</td>
-                                    <td><span class="badge">已登录</span></td>
+                                <tr v-for="user in users" :key="user.id">
+                                    <td class="entry-word">[[ user.username ]]</td>
+                                    <td>[[ user.email ]]</td>
+                                    <td>
+                                        <span class="badge" :class="{disabled: user.status === 'disabled'}">
+                                            [[ user.status === 'active' ? '启用' : '禁用' ]]
+                                        </span>
+                                    </td>
+                                    <td>[[ user.created_at || '-' ]]</td>
+                                    <td>[[ user.last_login_at || '-' ]]</td>
+                                    <td>
+                                        <span class="table-actions">
+                                            <button class="btn btn-icon" type="button" title="切换状态" @click="toggleUserStatus(user)">
+                                                <i class="bi" :class="user.status === 'active' ? 'bi-person-slash' : 'bi-person-check'"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-icon" type="button" title="删除" @click="deleteUser(user)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
+                        <div v-else class="empty-state">
+                            <i class="bi bi-people"></i>
+                            <strong>暂无普通用户</strong>
+                        </div>
                     </div>
                 </section>
 
@@ -979,6 +1015,7 @@
             delimiters: ['[[', ']]'],
             data: {
                 API_BASE: '/api/v1/admin',
+                USERS_API: '/api/v1/admin/users',
                 view: 'dashboard',
                 pageTitle: '系统仪表盘',
                 typeName: 'idiom',
@@ -998,6 +1035,7 @@
                 selectedBook: '',
                 selectedCategory: 'query.json',
                 entries: [],
+                users: [],
                 keyword: '',
                 createBookName: '',
                 createCategoryName: '',
@@ -1053,6 +1091,7 @@
                         await this.loadSummary();
                         await this.loadLibrary();
                         await this.loadEntries();
+                        await this.loadUsers();
                     } catch (error) {
                         this.showError(error.message);
                     } finally {
@@ -1061,6 +1100,10 @@
                 },
                 async loadSummary() {
                     this.summary = await this.apiRequest('/summary');
+                },
+                async loadUsers() {
+                    const data = await this.apiRequest('/users');
+                    this.users = data.users;
                 },
                 async loadLibrary() {
                     const params = new URLSearchParams({ type_name: this.typeName });
@@ -1290,6 +1333,39 @@
                         await this.loadEntries();
                         await this.loadSummary();
                         this.showMessage('词条已删除');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async toggleUserStatus(user) {
+                    const nextStatus = user.status === 'active' ? 'disabled' : 'active';
+                    this.loading = true;
+                    try {
+                        await this.apiRequest(`/users/${encodeURIComponent(user.id)}`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ status: nextStatus })
+                        });
+                        await this.loadUsers();
+                        this.showMessage(nextStatus === 'active' ? '用户已启用' : '用户已禁用');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async deleteUser(user) {
+                    if (!window.confirm(`删除用户“${user.username}”？`)) {
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        await this.apiRequest(`/users/${encodeURIComponent(user.id)}`, {
+                            method: 'DELETE'
+                        });
+                        await this.loadUsers();
+                        this.showMessage('用户已删除');
                     } catch (error) {
                         this.showError(error.message);
                     } finally {

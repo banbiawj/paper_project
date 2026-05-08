@@ -17,11 +17,16 @@ from app.auth import (
     LEGACY_SESSION_COOKIE_NAMES,
     SESSION_COOKIE_NAME,
     SESSION_MAX_AGE,
+    _authenticate_user,
+    _create_user,
     _create_session_token,
     _current_admin,
+    _current_session,
+    _current_user,
     _no_store,
     _redirect_to_login,
     _safe_next_url,
+    _update_user_login,
 )
 
 load_dotenv()
@@ -54,7 +59,7 @@ async def _read_urlencoded_form(request: Request) -> dict:
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    if not _current_admin(request):
+    if not _current_session(request):
         return _redirect_to_login("/")
     # 可以传入动态参数
     return _no_store(
@@ -63,9 +68,15 @@ async def home(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    next_url = _safe_next_url(request.query_params.get("next"))
+    requested_next = request.query_params.get("next")
     if _current_admin(request):
+        return _no_store(RedirectResponse(url="/admin", status_code=303))
+    if _current_user(request):
+        next_url = _safe_next_url(requested_next, "/")
+        if next_url.startswith("/admin"):
+            next_url = "/"
         return _no_store(RedirectResponse(url=next_url, status_code=303))
+    next_url = _safe_next_url(requested_next, "")
     return _no_store(
         templates.TemplateResponse(
             request,
@@ -81,23 +92,101 @@ async def login(request: Request):
     username = form_data.get("username", "").strip()
     password = form_data.get("password", "")
     remember = form_data.get("remember") == "on"
-    next_url = _safe_next_url(form_data.get("next"))
+    requested_next = form_data.get("next")
 
-    if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        response = _no_store(
+            RedirectResponse(
+                url="/admin",
+                status_code=303,
+            )
+        )
+        response.set_cookie(
+            key=SESSION_COOKIE_NAME,
+            value=_create_session_token(username, "admin"),
+            max_age=SESSION_MAX_AGE if remember else None,
+            httponly=True,
+            samesite="lax",
+            path="/",
+        )
+        return response
+
+    user, user_error = _authenticate_user(username, password)
+    if not user:
         return _no_store(
             templates.TemplateResponse(
                 request,
                 "login.html",
-                {"error": "账号或密码错误", "username": username, "next_url": next_url},
+                {
+                    "error": user_error or "账号或密码错误",
+                    "username": username,
+                    "next_url": _safe_next_url(requested_next, ""),
+                },
                 status_code=401,
             )
         )
 
+    _update_user_login(user["id"])
+    next_url = _safe_next_url(requested_next, "/")
+    if next_url.startswith("/admin"):
+        next_url = "/"
     response = _no_store(RedirectResponse(url=next_url, status_code=303))
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
-        value=_create_session_token(username),
+        value=_create_session_token(user["username"], "user"),
         max_age=SESSION_MAX_AGE if remember else None,
+        httponly=True,
+        samesite="lax",
+        path="/",
+    )
+    return response
+
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    if _current_admin(request):
+        return _no_store(RedirectResponse(url="/admin", status_code=303))
+    if _current_user(request):
+        return _no_store(RedirectResponse(url="/", status_code=303))
+    return _no_store(
+        templates.TemplateResponse(
+            request,
+            "register.html",
+            {"error": None, "username": "", "email": ""},
+        )
+    )
+
+
+@app.post("/register", response_class=HTMLResponse)
+async def register(request: Request):
+    form_data = await _read_urlencoded_form(request)
+    username = form_data.get("username", "").strip()
+    email = form_data.get("email", "").strip()
+    password = form_data.get("password", "")
+    confirm_password = form_data.get("confirm_password", "")
+
+    error = None
+    if password != confirm_password:
+        error = "两次输入的密码不一致"
+
+    try:
+        if error:
+            raise ValueError(error)
+        user = _create_user(username, email, password)
+    except ValueError as exc:
+        return _no_store(
+            templates.TemplateResponse(
+                request,
+                "register.html",
+                {"error": str(exc), "username": username, "email": email},
+                status_code=400,
+            )
+        )
+
+    response = _no_store(RedirectResponse(url="/", status_code=303))
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=_create_session_token(user["username"], "user"),
         httponly=True,
         samesite="lax",
         path="/",
