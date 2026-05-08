@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>记录簿</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"> -->
+    <link rel="stylesheet" href="/static/bootstrap/CSS/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/bootstrap/icons-1.13.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/CSS/style.css">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
+    <script src="/static/JavaScript/vue.js"></script>
+    <script src="/static/JavaScript/sidebar.js"></script>
+    <link rel="icon" type="image/svg+xml" href="static/icons/peace-fill.svg">
+
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- 移动端遮罩层 -->
+        <div class="overlay"></div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <i class="bi bi-pen"></i>
+                    <span>记录簿</span>
+                </div>
+                <button class="close-sidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <!-- <div class="nav-section">
+                <div class="nav-item active">
+                    <i class="bi bi-pencil-square nav-icon"></i>
+                    <span>写信</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-inbox nav-icon"></i>
+                    <span>收件箱</span>
+                    <span class="badge">236</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-file-earmark nav-icon"></i>
+                    <span>草稿箱</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-send nav-icon"></i>
+                    <span>已发送</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-trash nav-icon"></i>
+                    <span>已删除</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-exclamation-octagon nav-icon"></i>
+                    <span>垃圾邮件</span>
+                </div>
+                
+                <div class="nav-item">
+                    <i class="bi bi-tags nav-icon"></i>
+                    <span>更多标签</span>
+                </div>
+            </div> -->
+            
+            <div class="nav-section">
+                <div class="nav-title">书籍</div>
+                {% raw %}
+                <div class="nav-item" v-for="BookshelfList in BookshelfList_list" @click="FavoriteList(BookshelfList)">
+                    <i class="bi bi-file-text nav-icon"></i>
+                    <span>{{BookshelfList}}</span>
+                </div>
+                {% endraw %}
+
+                <div class="nav-item" @click="createBook()">
+                    <i class="bi bi-plus-lg nav-icon" ></i>
+                    <span>新建书籍</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">分类</div>
+                
+                {% raw %}
+                <div class="nav-item" v-for="Favorite in FavoriteList_list"  @click="readData(Favorite)" >
+                    <i class="bi bi-file-text nav-icon"></i>
+                    <span>{{Favorite}}</span>
+                </div>
+                {% endraw %}
+                
+                <div class="nav-item" >
+                    <i class="bi bi-folder-plus nav-icon"></i>
+                    <span>更多文件夹</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <div class="header">
+                <button class="menu-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                {% raw %}
+                <h1 class="page-title">
+                    <span class="badge text-bg-dark" 
+                          style="border-radius:8px"
+                          @click="transform_TypeName">
+                          {{TypeName=='idiom'?'成语':'词语'}}
+                    </span>
+                    记录簿
+                </h1>
+                {% endraw %}
+                <div class="search-container">
+                    <input type="text" class="search-input"  placeholder="搜索..." v-model="inquireContent">
+                    <button class="search-btn" data-bs-toggle="modal"  data-bs-target="#query-before-Modal" @click="sendQuery" >
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+        <div class="toolbar-padding">  
+        <div class="toolbar-container">
+            {% raw %}
+            <div class="toolbar">
+                <button class="toolbar-btn" 
+                        @click="readData('query.json')" 
+                        :class="{'active-btn': FavoriteName === 'query.json'}">
+                <i class="bi bi-card-list"></i>
+                <!-- <span>{{translate(removeAfterLastDot('query.json'))}}</span> -->
+                <span>{{PresentPath}}</span>
+                </button>
+
+                <button class="toolbar-btn" 
+                        @click="readData('default.json')"
+                        :class="{'active-btn': FavoriteName === 'default.json'}" >
+                <i class="bi bi-bookmark-star"></i>
+                <span>{{translate(removeAfterLastDot('default.json'))}}</span>
+                </button>
+                
+                <button class="toolbar-btn" 
+                        v-for="Favorite in FavoriteList_list" 
+                        :class="{'active-btn': FavoriteName === Favorite}"
+                        @click="readData(Favorite)" v-if="Favorite!='query.json' && Favorite!='default.json'">
+                <i class="bi bi-card-text"></i>
+                <span>{{translate(removeAfterLastDot(Favorite))}}</span>
+                </button>
+                
+                <button class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                <i class="bi bi-plus-square"></i>
+                </button>
+            </div>
+            {% endraw %}
+        </div>
+        </div>
+            <!-- 邮件卡片区域 -->
+            <div class="email-cards-container">
+                <div class="container-fluid">
+                    <div class="row g-3">
+
+                        <!-- 收藏夹内容 -->
+                        {% raw %}
+                        <div class="col-12 col-md-6 col-lg-4 col-xl-3" v-for="(item, index) in resultOutput" :key="index">
+                            <div class="card email-card "  >
+                                <div class="email-card-header">
+                                    <div class="email-sender">
+                                        <input type="checkbox" class="form-check-input me-2" >
+                                        <span>{{item['word']}}</span>
+                                    </div>
+                                    <div class="email-time">
+                                        <span class="badge text-bg-success" style="border-radius:8px">{{item['nature']}}</span>
+                                    </div>
+                                </div>
+                                <div class="email-card-body">
+                                    <!-- <p class="email-preview"  v-for="(value, key) in item">
+                                        <strong>{{ translate(key) }}:</strong> {{ value }}
+                                    </p> -->
+                                    <p class="email-preview" >
+                                        <strong>{{ translate('explain') }}:</strong> {{ item['explain']}}
+                                    </p>
+                                    <!-- <p class="email-preview"  >
+                                        <strong>{{ translate('example') }}:</strong> {{ item['example'] }}
+                                    </p> -->
+                                </div>
+                                <div class="email-card-footer">
+                                    <div class="email-actions">
+                                        <button class="email-action-btn"><i class="bi bi-reply"></i></button>
+                                        <button class="email-action-btn"><i class="bi bi-trash" @click="deleteData(item)"></i></button>
+                                        <button class="email-action-btn"  data-bs-toggle="modal"  data-bs-target="#amendModal" @click="setAlterMessage(item)"><i class="bi bi-pencil-square" ></i></button>
+                                    </div>
+                                    <span class="badge  text-bg-primary" data-bs-toggle="modal"  data-bs-target="#checkModal" @click="setcheckindex(index)" >查看</span>
+                        
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-4 col-xl-3" v-if="!(Array.isArray(resultOutput) && resultOutput.length > 0)">
+                            <div class="card email-card" style="display:flex; align-items:center; justify-content:center;  height: 250px;" >
+                                <strong style="font-size:35px; color:#6c757d;">暂无数据</strong>
+                            </div>
+                        </div>
+                        {% endraw %}
+                        
+                        <!-- 添加卡片 -->
+                        <div class="col-12 col-md-6 col-lg-4 col-xl-3" data-bs-toggle="modal" data-bs-target="#dynamicModal" @click="setfields()">
+                            <div class="card email-card" style="display:flex; align-items:center; justify-content:center;  height: 250px;">
+                                <i class="bi bi-plus-lg" style="font-size:48px; color:#6c757d;"></i>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        
+        <!-- 悬浮按钮容器 -->
+        <div class="floating-btn-container">
+            <!-- 主悬浮按钮 -->
+            <button class="floating-btn" id="mainFloatingBtn">
+                <i class="bi bi-plus-lg"></i>
+                <span class="floating-btn-label">快速操作</span>
+            </button>
+            
+            <!-- 按钮菜单 -->
+            <div class="btn-menu" id="floatingBtnMenu" data-bs-toggle="modal" data-bs-target="#CreateBookModal">
+                <a href="#" class="menu-item" >
+                    <i class="bi bi-chat"></i>
+                    <span>新建书籍</span>
+                </a>
+                <a href="#" class="menu-item" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <i class="bi bi-upload"></i>
+                    <span>新建分类</span>
+                </a>
+                <a href="#" class="menu-item" data-bs-toggle="modal" data-bs-target="#dynamicModal" @click="setfields()">
+                    <i class="bi bi-camera"></i>
+                    <span>添加词条</span>
+                </a>
+                <div class="menu-divider"></div>
+                <a href="#" class="menu-item">
+                    <i class="bi bi-gear"></i>
+                    <span>设置</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="bi bi-question-circle"></i>
+                    <span>帮助</span>
+                </a>
+            </div>
+        </div>
+
+        <footer class="footer mt-auto py-3 bg-light">
+            <div class="container text-center">
+                <span class="text-muted">© 2025 File Memory | Built with bootstrap vue | author AWJ</span>
+            </div>
+        </footer>
+        </div>
+<!-- 模态框 -->
+
+
+<!-- 创建分类 -->
+<div class="modal fade" id="exampleModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0  d-flex justify-content-center align-items-center">
+        <h5 class="modal-title text-center" id="exampleModalLabel">新建分类</h5>
+        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      {% raw %}
+      <div class="modal-body border-0 pb-0">
+        <div class="form-floating">
+          <input type="text" class="form-control border-0 border-bottom rounded-0 ps-0" 
+                id="floatingBook" placeholder=" " 
+                style="box-shadow: none !important; background: transparent;"
+                v-model="createFavoriteName">
+          <label for="floatingBook " class="ps-0">分类</label>
+        </div>
+        <!-- 提示文字 -->
+        <div class="text-muted mt-2 " style="font-size: 12px; opacity: 0.7;">
+          输入分类名称，创建新的分类记录
+        </div>
+      </div>
+      {% endraw %}
+      <div class="modal-footer border-0 ">
+        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button> -->
+        <button type="button" class="btn btn-primary w-100 py-3 fw-semibold border-0" 
+                @click="createFavorite"
+                style="
+                  border-radius: 12px;
+                  font-size: 16px;
+                  letter-spacing: 0.5px;
+                  transition: all 0.3s ease;
+                  background-color: #1a1a1a;
+              ">
+                创建
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 创建书籍 -->
+<div class="modal fade" id="CreateBookModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="CreateBookModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0  d-flex justify-content-center align-items-center">
+        <h5 class="modal-title text-center" id="CreateBookModalLabel">新建书籍</h5>
+        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      {% raw %}
+      <div class="modal-body border-0 pb-0">
+        <div class="form-floating">
+          <input type="text" class="form-control border-0 border-bottom rounded-0 ps-0" 
+                id="floatingBook" placeholder=" " 
+                style="box-shadow: none !important; background: transparent;"
+                v-model="CreateBookName">
+          <label for="floatingBook " class="ps-0">书名</label>
+        </div>
+        <!-- 提示文字 -->
+        <div class="text-muted mt-2 " style="font-size: 12px; opacity: 0.7;">
+          输入书籍名称，创建新的书籍记录
+        </div>
+      </div>
+      {% endraw %}
+      <div class="modal-footer border-0 ">
+        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button> -->
+        <button type="button" class="btn btn-primary w-100 py-3 fw-semibold border-0" 
+                @click="createBook" 
+                style="
+                  border-radius: 12px;
+                  font-size: 16px;
+                  letter-spacing: 0.5px;
+                  transition: all 0.3s ease;
+                  background-color: #1a1a1a;
+              ">
+                创建
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- 自定义 -->
+<div class="modal fade" id="dynamicModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="dynamicModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">创建词条</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+        {% raw %}
+        <!-- 动态输入框部分 - 修改为上下结构 -->
+        <div v-for="(field, index) in fields" :key="index" class="mb-4 p-3 border rounded">
+          <!-- Key输入区域 -->
+          <div class="mb-3">
+            <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+              Key
+              <span class="input-group-text bg-danger-subtle ms-2" style="height:35px; line-height:35px; cursor:pointer;" @click="removeField(index)">
+                <i class="bi bi-x-lg"></i>
+              </span>
+            </label>
+            <input type="text" class="form-control" v-model="field.key" placeholder="请输入键名">
+          </div>
+          
+          <!-- Value输入区域 - 改为textarea -->
+          <div class="mb-2">
+            <label class="form-label fw-bold">Value</label>
+            <textarea class="form-control" v-model="field.value" rows="2" placeholder="请输入值"></textarea>
+          </div>
+          
+
+        </div>
+        {% endraw %}
+        <!-- 添加按钮 -->
+        <button type="button" class="btn btn-outline-success w-100" @click="addField">
+            <i class="bi bi-plus-lg"></i> 添加输入框
+        </button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" @click="submitForm" >创建</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 查看 -->
+<div class="modal fade" id="checkModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="checkModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable h-75">
+    <div class="modal-content h-70">
+      {% raw %}
+      <div class="modal-header border-0 pb-0  d-flex justify-content-center align-items-center">
+        <h5 class="modal-title text-center" id="checkModalLabel">
+          {{ resultOutput[checkindex]?.word || '暂无数据' }}
+        </h5>
+        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body overflow-auto">
+        <div class="email-card-body">
+          <div class="mb-3"     
+               v-for="([key, value], i) in currentEntryList.slice(1).filter(item => item[1] != null)"
+               :key="key" ><!--.slice(1, -2)  -->
+            <strong class="d-block mb-1">{{ translate(key) }}:</strong> 
+            <div class="text-break lh-base">{{ value }}</div>
+          </div> 
+        </div>
+      </div>
+      
+      <div class="modal-footer d-flex justify-content-between align-items-center">
+        <i class="bi bi-chevron-left fs-4" style="cursor:pointer;" @click="alertcheckindex('-')"></i>
+        <div class="text-center flex-grow-1">
+          {{checkindex+1}}/{{resultOutput.length}}
+        </div>
+        <i class="bi bi-chevron-right fs-4" style="cursor:pointer;" @click="alertcheckindex('+')"></i>
+      </div>
+      {% endraw %}
+    </div>
+  </div>
+</div>
+
+<!-- 修改 -->
+<div class="modal fade" id="amendModal" tabindex="-1" aria-labelledby="amendModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    {% raw %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">{{alterMessage['word']}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+        <!-- 动态输入框部分 - 修改为上下结构 -->
+        <div v-for="(field, index) in fields" :key="index" class="mb-4 p-3 border rounded">
+          <!-- Key输入区域 -->
+          <div class="mb-3">
+            <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+              Key
+              <span class="input-group-text bg-danger-subtle ms-2" style="height:35px; line-height:35px; cursor:pointer;" @click="removeField(index+1)">
+                <i class="bi bi-x-lg"></i>
+              </span>
+            </label>
+            <input type="text" class="form-control" v-model="field.key" placeholder="请输入键名">
+          </div>
+          
+          <!-- Value输入区域 - 改为textarea -->
+          <div class="mb-2">
+            <label class="form-label fw-bold">Value</label>
+            <textarea class="form-control" v-model="field.value" rows="2" placeholder="请输入值"></textarea>
+          </div>
+          
+          <!-- 删除按钮 -->
+
+        </div>
+        {% endraw %}
+        <!-- 添加按钮 -->
+        <button type="button" class="btn btn-outline-success w-100 mt-3" @click="addField">
+            <i class="bi bi-plus-lg me-1"></i> 添加输入框
+        </button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" @click="alert_submitForm()" >创建</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 搜索结果 -->
+<div class="modal fade" id="queryModal" tabindex="-1" aria-labelledby="queryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    {% raw %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">{{result['word']}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <form>
+        
+            <div class="email-card-body">
+                <p class="email-preview"     v-for="([key, value], i) in Object.entries(result).slice(1)" :key="key">
+                    <strong>{{ translate(key) }}:</strong> {{ value }}
+                </p> 
+            </div>
+       
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" @click="saveData(result,'queryModal')">
+            <!-- :disabled="result['favoritename']" -->
+            <!-- {{ result["favoritename"] ? '已保存' : '保存' }} -->
+            保存
+        </button>
+      </div>
+         {% endraw %}
+
+    </div>
+  </div>
+</div>
+<!-- 搜索前 -->
+<div class="modal fade" id="query-before-Modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="query-before-ModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    {% raw %}
+    <div class="modal-header placeholder-glow">
+    <h5 class="modal-title" id="exampleModalLabel">
+        <span class="placeholder col-6 bg-secondary-subtle"></span>
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+      
+      <div class="modal-body">
+        <form>
+          <div class="email-card-body placeholder-glow">
+            <p>
+              <span class="placeholder col-4"></span>
+              <span class="placeholder col-8"></span>
+            </p>
+            <p>
+              <span class="placeholder col-3"></span>
+              <span class="placeholder col-7"></span>
+            </p>
+            <p>
+              <span class="placeholder col-5"></span>
+              <span class="placeholder col-6"></span>
+            </p>
+          </div>
+        </form>
+      </div>
+
+    <div class="modal-footer placeholder-glow">
+        <button type="button" class="btn btn-secondary disabled placeholder col-3"></button>
+        <button type="button" class="btn btn-primary disabled placeholder col-3"></button>
+    </div>
+    {% endraw %}
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+    </div>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> -->
+     <script src="/static/bootstrap/JavaScript/bootstrap.bundle.min.js"></script>
+    <script src="/static/JavaScript/request.js"></script>
+</body>
+</html>

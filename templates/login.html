@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>记录簿 - 登录</title>
+    <style>
+        /* 基础重置与系统字体 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body, html {
+            height: 100%;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            overflow-x: hidden;
+        }
+
+        /* 占满全屏的分栏布局 */
+        .split-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* 左侧：品牌展示区 */
+        .layout-left {
+            flex: 1.2; /* 占据更大的比例 */
+            background: linear-gradient(135deg, #121212 0%, #2a2a2a 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 左侧装饰性光晕/图形 */
+        .layout-left::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+
+        .layout-left::after {
+            content: '';
+            position: absolute;
+            bottom: -10%;
+            right: -10%;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+
+        .brand-showcase {
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-logo-large {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .brand-slogan {
+            font-size: 48px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        .brand-description {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            max-width: 80%;
+        }
+
+        /* 右侧：登录表单区 */
+        .layout-right {
+            flex: 1;
+            max-width: 560px; /* 限制表单最大宽度，防止拉伸过度 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 80px;
+            background-color: #ffffff;
+            box-shadow: -20px 0 40px rgba(0, 0, 0, 0.03);
+            z-index: 10;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .login-header {
+            margin-bottom: 48px;
+        }
+
+        .login-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #6c757d;
+        }
+
+        /* 原生复刻：底部边框的悬浮标签输入框 */
+        .form-floating {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .form-floating input {
+            width: 100%;
+            padding: 24px 0 8px 0;
+            font-size: 16px;
+            color: #1a1a1a;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-floating input:focus {
+            border-bottom-color: #1a1a1a;
+        }
+
+        .form-floating label {
+            position: absolute;
+            left: 0;
+            top: 20px;
+            color: #6c757d;
+            font-size: 16px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-floating input:focus ~ label,
+        .form-floating input:not(:placeholder-shown) ~ label {
+            top: 0;
+            font-size: 13px;
+        }
+
+        /* 记住我 & 忘记密码 */
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            cursor: pointer;
+        }
+
+        .remember-me input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: #1a1a1a;
+            width: 16px;
+            height: 16px;
+        }
+
+        .forgot-link {
+            text-decoration: none;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+
+        .forgot-link:hover {
+            color: #1a1a1a;
+        }
+
+        /* 主按钮 */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #333333;
+            box-shadow: 0 4px 16px rgba(26, 26, 26, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* 底部注册提示 */
+        .login-footer {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .login-footer a {
+            text-decoration: none;
+            color: #1a1a1a;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* =========================================
+           响应式适配 (平板与手机)
+           ========================================= */
+        
+        /* 平板适配 (< 992px) */
+        @media (max-width: 992px) {
+            .layout-left {
+                display: none; /* 屏幕较小时隐藏左侧品牌区 */
+            }
+            .layout-right {
+                max-width: 100%;
+                align-items: center;
+                padding: 40px 24px;
+                background-color: #f8f9fa; /* 手机端恢复浅色背景衬托表单 */
+                box-shadow: none;
+            }
+            .login-wrapper {
+                background: #ffffff;
+                padding: 40px;
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            }
+        }
+
+        /* 小屏手机适配 (< 480px) */
+        @media (max-width: 480px) {
+            .layout-right {
+                padding: 16px;
+            }
+            .login-wrapper {
+                padding: 32px 24px;
+            }
+            .login-title {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="split-layout">
+        <!-- 左侧：品牌海报区 (仅在桌面端显示) -->
+        <div class="layout-left">
+            <div class="brand-showcase">
+                <div class="brand-logo-large">
+                    <!-- SVG Logo -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                    </svg>
+                    <span>记录簿</span>
+                </div>
+                <h1 class="brand-slogan">记录每一个<br>闪光的瞬间。</h1>
+                <p class="brand-description">构建你的私人词语知识库，随时随地开启记忆与思考。</p>
+            </div>
+        </div>
+
+        <!-- 右侧：登录表单区 -->
+        <div class="layout-right">
+            <div class="login-wrapper">
+                
+                <div class="login-header">
+                    <h2 class="login-title">欢迎回来</h2>
+                    <div class="subtitle">请输入您的账号密码进行登录</div>
+                </div>
+
+                <!-- 纯展示表单 -->
+                <form onsubmit="event.preventDefault();">
+                    <!-- 账号 -->
+                    <div class="form-floating">
+                        <input type="text" id="username" placeholder=" " required>
+                        <label for="username">账号 / 邮箱</label>
+                    </div>
+
+                    <!-- 密码 -->
+                    <div class="form-floating">
+                        <input type="password" id="password" placeholder=" " required>
+                        <label for="password">密码</label>
+                    </div>
+
+                    <!-- 操作区 -->
+                    <div class="actions">
+                        <label class="remember-me">
+                            <input type="checkbox">
+                            <span>记住我</span>
+                        </label>
+                        <a href="#" class="forgot-link">忘记密码？</a>
+                    </div>
+
+                    <!-- 按钮 -->
+                    <button type="submit" class="btn-primary">
+                        登 录
+                    </button>
+                </form>
+
+                <!-- 注册入口 -->
+                <div class="login-footer">
+                    <span>还没有账号？</span>
+                    <a href="#">立即免费注册</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
