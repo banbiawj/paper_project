@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>记录簿 - 后台管理系统</title>
+    <link rel="stylesheet" href="/static/bootstrap/icons-1.13.1/font/bootstrap-icons.css">
     <style>
-        /* =========================================
-           基础重置与系统字体
-           ========================================= */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -15,36 +13,31 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
+        [v-cloak] { display: none; }
+
         body, html {
-            background-color: #f8f9fa;
-            color: #1a1a1a;
+            background-color: #f7f8fa;
+            color: #1f2328;
             overflow-x: hidden;
         }
 
-        a {
-            text-decoration: none;
-            color: inherit;
+        button, input, textarea, select {
+            font: inherit;
         }
 
-        ul {
-            list-style: none;
+        button {
+            cursor: pointer;
         }
 
-        /* =========================================
-           整体布局
-           ========================================= */
         .admin-layout {
             display: flex;
             min-height: 100vh;
         }
 
-        /* =========================================
-           侧边栏 (Sidebar)
-           ========================================= */
         .sidebar {
             width: 260px;
             background-color: #ffffff;
-            border-right: 1px solid #ebeef5;
+            border-right: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -52,7 +45,7 @@
             left: 0;
             top: 0;
             z-index: 100;
-            transition: transform 0.3s ease;
+            transition: transform 0.25s ease;
         }
 
         .sidebar-header {
@@ -62,7 +55,7 @@
             padding: 0 24px;
             font-size: 20px;
             font-weight: 700;
-            border-bottom: 1px solid #ebeef5;
+            border-bottom: 1px solid #e5e7eb;
             gap: 10px;
         }
 
@@ -70,113 +63,114 @@
             padding: 20px 12px;
             flex: 1;
             overflow-y: auto;
+            list-style: none;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
             gap: 12px;
+            width: 100%;
             padding: 14px 16px;
-            border-radius: 12px;
-            color: #6c757d;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #687076;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 8px;
+            text-align: left;
             transition: all 0.2s ease;
-            cursor: pointer;
         }
 
         .menu-item:hover {
-            background-color: #f8f9fa;
-            color: #1a1a1a;
+            background-color: #f2f4f7;
+            color: #1f2328;
         }
 
-        /* 激活状态的菜单项 */
         .menu-item.active {
-            background-color: #1a1a1a;
+            background-color: #1f2328;
             color: #ffffff;
         }
 
         .sidebar-footer {
             padding: 20px;
-            border-top: 1px solid #ebeef5;
+            border-top: 1px solid #e5e7eb;
         }
 
         .user-profile {
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 14px;
         }
 
         .avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #1a1a1a;
+            background-color: #1f2328;
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
         }
 
         .user-info {
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         .user-name {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .user-role {
             font-size: 12px;
-            color: #6c757d;
-        }
-
-        .logout-form {
-            margin-top: 16px;
+            color: #687076;
         }
 
         .logout-button {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ebeef5;
-            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 38px;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
             background: #ffffff;
-            color: #6c757d;
+            color: #57606a;
             font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            font-weight: 700;
         }
 
         .logout-button:hover {
-            border-color: #1a1a1a;
-            color: #1a1a1a;
+            border-color: #1f2328;
+            color: #1f2328;
         }
 
-        /* =========================================
-           主内容区 (Main Content)
-           ========================================= */
         .main-content {
             flex: 1;
             margin-left: 260px;
-            display: flex;
-            flex-direction: column;
             min-height: 100vh;
             width: calc(100% - 260px);
         }
 
-        /* 顶部导航条 */
         .top-header {
             height: 72px;
             background-color: #ffffff;
-            border-bottom: 1px solid #ebeef5;
+            border-bottom: 1px solid #e5e7eb;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 20px;
             padding: 0 32px;
             position: sticky;
             top: 0;
@@ -187,6 +181,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            min-width: 0;
         }
 
         .menu-toggle {
@@ -194,135 +189,296 @@
             background: none;
             border: none;
             font-size: 24px;
-            cursor: pointer;
-            color: #1a1a1a;
+            color: #1f2328;
         }
 
         .page-title {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .search-bar {
             position: relative;
-            width: 300px;
+            width: min(360px, 36vw);
         }
 
-        .search-bar input {
-            width: 100%;
-            padding: 10px 16px 10px 40px;
-            border-radius: 20px;
-            border: 1px solid #ebeef5;
-            background-color: #f8f9fa;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        .search-bar input:focus {
-            border-color: #1a1a1a;
-            background-color: #ffffff;
-        }
-
-        .search-bar svg {
+        .search-bar i {
             position: absolute;
             left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6c757d;
+            color: #687076;
+            font-size: 15px;
         }
 
-        /* 内容主体区域 */
+        .search-bar input {
+            width: 100%;
+            height: 40px;
+            padding: 0 14px 0 38px;
+            border-radius: 20px;
+            border: 1px solid #d8dee4;
+            background-color: #f7f8fa;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar input:focus {
+            border-color: #1f2328;
+            background-color: #ffffff;
+        }
+
         .content-body {
-            padding: 32px;
-            flex: 1;
+            padding: 28px 32px 40px;
         }
 
-        /* 数据统计卡片网格 - 修改为 3 列 */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card,
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(31, 35, 40, 0.04);
         }
 
         .stat-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }
 
         .stat-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            color: #6c757d;
-            font-size: 14px;
-            margin-bottom: 16px;
+            justify-content: space-between;
+            color: #687076;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 14px;
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background-color: #f8f9fa;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: #f2f4f7;
+            color: #1f2328;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #1a1a1a;
         }
 
         .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 4px;
+            font-size: 30px;
+            line-height: 1;
+            font-weight: 800;
+            margin-bottom: 8px;
         }
 
-        .stat-trend {
+        .stat-note {
+            color: #687076;
             font-size: 13px;
         }
 
-        .trend-up { color: #10b981; }
-        .trend-down { color: #ef4444; }
-
-        /* 数据表格区域 */
-        .table-container {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .panel {
+            padding: 22px;
             margin-bottom: 20px;
         }
 
-        .table-title {
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 800;
         }
 
-        .btn-action {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+        .panel-subtitle {
+            color: #687076;
             font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            margin-top: 4px;
         }
 
-        .btn-action:hover {
-            background-color: #333333;
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 180px minmax(220px, 1fr) auto;
+            gap: 10px;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .input,
+        .select,
+        .textarea {
+            width: 100%;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #1f2328;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .input,
+        .select {
+            height: 40px;
+            padding: 0 12px;
+        }
+
+        .textarea {
+            min-height: 84px;
+            resize: vertical;
+            padding: 10px 12px;
+            line-height: 1.5;
+        }
+
+        .input:focus,
+        .select:focus,
+        .textarea:focus {
+            border-color: #1f2328;
+        }
+
+        .btn {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border-radius: 8px;
+            border: 1px solid #d8dee4;
+            padding: 0 14px;
+            background: #ffffff;
+            color: #1f2328;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .btn:hover {
+            border-color: #1f2328;
+        }
+
+        .btn-primary {
+            background: #1f2328;
+            border-color: #1f2328;
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            border-color: #f2b8b5;
+            color: #b42318;
+        }
+
+        .btn-icon {
+            width: 38px;
+            min-height: 38px;
+            padding: 0;
+        }
+
+        .segmented {
+            display: inline-flex;
+            padding: 3px;
+            border: 1px solid #d8dee4;
+            border-radius: 8px;
+            background: #f7f8fa;
+        }
+
+        .segment {
+            min-width: 76px;
+            height: 34px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #687076;
+            font-weight: 800;
+        }
+
+        .segment.active {
+            background: #1f2328;
+            color: #ffffff;
+        }
+
+        .split-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .list-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            min-height: 48px;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #ffffff;
+            text-align: left;
+        }
+
+        .list-item.active {
+            border-color: #1f2328;
+            background: #f6f8fa;
+        }
+
+        .item-title {
+            font-weight: 800;
+        }
+
+        .item-meta {
+            color: #687076;
+            font-size: 12px;
         }
 
         .data-table {
@@ -330,256 +486,880 @@
             border-collapse: collapse;
         }
 
-        .data-table th, .data-table td {
-            padding: 16px 12px;
+        .data-table th,
+        .data-table td {
+            padding: 13px 12px;
             text-align: left;
-            border-bottom: 1px solid #ebeef5;
+            border-bottom: 1px solid #e5e7eb;
             font-size: 14px;
+            vertical-align: top;
         }
 
         .data-table th {
-            color: #6c757d;
-            font-weight: 500;
+            color: #687076;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
         .data-table tbody tr:hover {
-            background-color: #f8f9fa;
+            background: #f7f8fa;
+        }
+
+        .entry-word {
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .entry-explain {
+            color: #57606a;
+            line-height: 1.5;
+            max-width: 520px;
+            white-space: pre-wrap;
+        }
+
+        .table-actions {
+            display: inline-flex;
+            gap: 8px;
+            white-space: nowrap;
         }
 
         .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 0 9px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3538cd;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 800;
         }
 
-        .badge-success { background-color: #d1fae5; color: #065f46; }
-        .badge-warning { background-color: #fef3c7; color: #92400e; }
-
-        /* =========================================
-           响应式适配
-           ========================================= */
-        
-        /* 平板及以下 (< 1024px) */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .notice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 700;
         }
 
-        /* 手机端 (< 768px) */
+        .notice.error {
+            background: #fff1f0;
+            color: #b42318;
+            border: 1px solid #f2b8b5;
+        }
+
+        .notice.success {
+            background: #ecfdf3;
+            color: #067647;
+            border: 1px solid #abefc6;
+        }
+
+        .empty-state {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #687076;
+            text-align: center;
+            gap: 10px;
+            border: 1px dashed #d8dee4;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .empty-state i {
+            font-size: 30px;
+            color: #8c959f;
+        }
+
+        .loading {
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        @media (max-width: 1180px) {
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .split-grid { grid-template-columns: 1fr; }
+        }
+
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
-            }
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-            }
-            .menu-toggle {
-                display: block;
-            }
-            .search-bar {
-                display: none; 
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .content-body {
-                padding: 16px;
-            }
-            .table-container {
-                overflow-x: auto; 
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); box-shadow: 10px 0 30px rgba(31, 35, 40, 0.12); }
+            .main-content { margin-left: 0; width: 100%; }
+            .menu-toggle { display: inline-flex; }
+            .top-header { padding: 0 16px; }
+            .header-actions { display: none; }
+            .content-body { padding: 18px 16px 28px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .panel { padding: 16px; overflow-x: auto; }
+            .form-grid { grid-template-columns: 1fr; }
+            .data-table { min-width: 720px; }
         }
     </style>
 </head>
 <body>
-
-    <div class="admin-layout">
-        
-        <!-- 左侧：导航侧边栏 -->
+    <div id="adminApp" class="admin-layout" v-cloak>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-                </svg>
-                记录簿管理
+                <i class="bi bi-pen"></i>
+                <span>记录簿管理</span>
             </div>
-            
-            <ul class="sidebar-menu">
-                <li class="menu-item active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg>
-                    仪表盘
-                </li>
-                <li class="menu-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/></svg>
-                    书籍与分类
-                </li>
-                <li class="menu-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/><path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8zm0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/></svg>
-                    词条管理
-                </li>
-                <li class="menu-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
-                    用户管理
-                </li>
-                <li class="menu-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
-                    系统设置
-                </li>
-            </ul>
 
-            <!-- 侧边栏底部：管理员信息 -->
+            <nav class="sidebar-menu">
+                <button class="menu-item" :class="{active: view === 'dashboard'}" @click="switchView('dashboard', '系统仪表盘')">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>仪表盘</span>
+                </button>
+                <button class="menu-item" :class="{active: view === 'books'}" @click="switchView('books', '书籍与分类')">
+                    <i class="bi bi-grid"></i>
+                    <span>书籍与分类</span>
+                </button>
+                <button class="menu-item" :class="{active: view === 'entries'}" @click="switchView('entries', '词条管理')">
+                    <i class="bi bi-card-text"></i>
+                    <span>词条管理</span>
+                </button>
+                <button class="menu-item" :class="{active: view === 'users'}" @click="switchView('users', '用户管理')">
+                    <i class="bi bi-people"></i>
+                    <span>用户管理</span>
+                </button>
+                <button class="menu-item" :class="{active: view === 'settings'}" @click="switchView('settings', '系统设置')">
+                    <i class="bi bi-sliders"></i>
+                    <span>系统设置</span>
+                </button>
+            </nav>
+
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="avatar">AW</div>
+                    <div class="avatar">{{ (admin_user or 'A')[:1].upper() }}</div>
                     <div class="user-info">
-                        <span class="user-name">{{ admin_user or 'Admin AWJ' }}</span>
+                        <span class="user-name">{{ admin_user or 'admin' }}</span>
                         <span class="user-role">超级管理员</span>
                     </div>
                 </div>
-                <form class="logout-form" method="post" action="/logout">
-                    <button class="logout-button" type="submit">退出登录</button>
+                <form method="post" action="/logout">
+                    <button class="logout-button" type="submit">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>退出登录</span>
+                    </button>
                 </form>
             </div>
         </aside>
 
-        <!-- 右侧：主内容区 -->
         <main class="main-content">
-            
-            <!-- 顶部导航 -->
             <header class="top-header">
                 <div class="header-left">
-                    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('show')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-                        </svg>
+                    <button class="menu-toggle" type="button" @click="toggleSidebar">
+                        <i class="bi bi-list"></i>
                     </button>
-                    <h2 class="page-title">系统仪表盘</h2>
+                    <h1 class="page-title">[[ pageTitle ]]</h1>
                 </div>
-                
-                <div class="search-bar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                    </svg>
-                    <input type="text" placeholder="搜索词条、用户或记录...">
+
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="bi bi-search"></i>
+                        <input type="text" v-model.trim="keyword" placeholder="搜索词条" @keyup.enter="searchFromHeader">
+                    </div>
+                    <button class="btn" type="button" @click="refreshAll">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <span>刷新</span>
+                    </button>
                 </div>
             </header>
 
-            <!-- 核心数据与表格区 -->
-            <div class="content-body">
-                
-                <!-- 顶部数据概览卡片 -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span>总词条数量</span>
-                            <div class="stat-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value">12,405</div>
-                        <div class="stat-trend trend-up">↑ 较上月增加 12%</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span>收录书籍</span>
-                            <div class="stat-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3z"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value">158</div>
-                        <div class="stat-trend trend-up">↑ 新增 3 本</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span>系统活跃用户</span>
-                            <div class="stat-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value">3,201</div>
-                        <div class="stat-trend trend-down">↓ 较上周下降 2%</div>
-                    </div>
+            <div class="content-body" :class="{loading: loading}">
+                <div v-if="error" class="notice error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>[[ error ]]</span>
+                </div>
+                <div v-if="message" class="notice success">
+                    <i class="bi bi-check-circle"></i>
+                    <span>[[ message ]]</span>
                 </div>
 
-                <!-- 最近动态表格 -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3 class="table-title">最近更新词条</h3>
-                        <button class="btn-action">+ 录入新词条</button>
+                <section class="view-section" :class="{active: view === 'dashboard'}">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span>总词条数</span>
+                                <span class="stat-icon"><i class="bi bi-card-list"></i></span>
+                            </div>
+                            <div class="stat-value">[[ formatNumber(summary.entry_count) ]]</div>
+                            <div class="stat-note">按各书籍 query.json 汇总</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span>书籍数</span>
+                                <span class="stat-icon"><i class="bi bi-journal-text"></i></span>
+                            </div>
+                            <div class="stat-value">[[ formatNumber(summary.book_count) ]]</div>
+                            <div class="stat-note">成语与词语书籍总量</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span>分类文件</span>
+                                <span class="stat-icon"><i class="bi bi-folder2-open"></i></span>
+                            </div>
+                            <div class="stat-value">[[ formatNumber(summary.category_count) ]]</div>
+                            <div class="stat-note">包含 query 与 default</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span>管理员</span>
+                                <span class="stat-icon"><i class="bi bi-person-check"></i></span>
+                            </div>
+                            <div class="stat-value">1</div>
+                            <div class="stat-note">{{ admin_user or 'admin' }}</div>
+                        </div>
                     </div>
-                    
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>词条名称</th>
-                                <th>所属分类</th>
-                                <th>更新者</th>
-                                <th>修改时间</th>
-                                <th>当前状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>见微知著</strong></td>
-                                <td>成语词典 / default.json</td>
-                                <td>Admin AWJ</td>
-                                <td>2025-10-24 14:30</td>
-                                <td><span class="badge badge-success">已发布</span></td>
-                                <td style="color: #6c757d; cursor: pointer;">编辑 | 删除</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Paradigm Shift</strong></td>
-                                <td>外语词库 / query.json</td>
-                                <td>User_092</td>
-                                <td>2025-10-24 11:15</td>
-                                <td><span class="badge badge-success">已发布</span></td>
-                                <td style="color: #6c757d; cursor: pointer;">编辑 | 删除</td>
-                            </tr>
-                            <tr>
-                                <td><strong>量子纠缠</strong></td>
-                                <td>物理概念 / science.json</td>
-                                <td>Admin AWJ</td>
-                                <td>2025-10-23 09:45</td>
-                                <td><span class="badge badge-warning">草稿中</span></td>
-                                <td style="color: #6c757d; cursor: pointer;">审核 | 删除</td>
-                            </tr>
-                            <tr>
-                                <td><strong>厚积薄发</strong></td>
-                                <td>成语词典 / default.json</td>
-                                <td>System Auto</td>
-                                <td>2025-10-22 18:20</td>
-                                <td><span class="badge badge-success">已发布</span></td>
-                                <td style="color: #6c757d; cursor: pointer;">编辑 | 删除</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
 
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">最近更新词条</div>
+                                <div class="panel-subtitle">按 JSON 文件修改时间排序</div>
+                            </div>
+                            <button class="btn btn-primary" type="button" @click="openCreateEntryFromDashboard">
+                                <i class="bi bi-plus-lg"></i>
+                                <span>录入词条</span>
+                            </button>
+                        </div>
+                        <table class="data-table" v-if="summary.recent_entries.length">
+                            <thead>
+                                <tr>
+                                    <th>词条</th>
+                                    <th>类型</th>
+                                    <th>书籍</th>
+                                    <th>分类</th>
+                                    <th>修改时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="entry in summary.recent_entries" :key="entry.type_name + entry.book + entry.category + entry.word">
+                                    <td class="entry-word">[[ entry.word || '-' ]]</td>
+                                    <td><span class="badge">[[ entry.type_label ]]</span></td>
+                                    <td>[[ entry.book ]]</td>
+                                    <td>[[ categoryLabel(entry.category) ]]</td>
+                                    <td>[[ entry.updated_at ]]</td>
+                                    <td>
+                                        <button class="btn btn-icon" type="button" title="打开" @click="openEntryLocation(entry)">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div v-else class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <strong>暂无数据</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="view-section" :class="{active: view === 'books'}">
+                    <div class="toolbar">
+                        <div class="segmented">
+                            <button v-for="option in typeOptions" :key="option.value" class="segment" :class="{active: typeName === option.value}" type="button" @click="selectType(option.value)">
+                                [[ option.label ]]
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">书籍</div>
+                                    <div class="panel-subtitle">[[ typeLabel(typeName) ]]</div>
+                                </div>
+                            </div>
+                            <div class="form-row" style="margin-bottom: 16px;">
+                                <input class="input" style="max-width: 260px;" type="text" v-model.trim="createBookName" placeholder="书籍名称" @keyup.enter="createBook">
+                                <button class="btn btn-primary" type="button" @click="createBook">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>新建</span>
+                                </button>
+                            </div>
+                            <div class="list" v-if="library.books.length">
+                                <button v-for="book in library.books" :key="book.name" class="list-item" :class="{active: selectedBook === book.name}" type="button" @click="selectBook(book.name)">
+                                    <span>
+                                        <span class="item-title">[[ book.name ]]</span>
+                                        <span class="item-meta">[[ book.entry_count ]] 条词条</span>
+                                    </span>
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div v-else class="empty-state">
+                                <i class="bi bi-journal"></i>
+                                <strong>暂无书籍</strong>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">分类</div>
+                                    <div class="panel-subtitle">[[ selectedBook || '-' ]]</div>
+                                </div>
+                            </div>
+                            <div class="form-row" style="margin-bottom: 16px;">
+                                <input class="input" style="max-width: 260px;" type="text" v-model.trim="createCategoryName" placeholder="分类名称" @keyup.enter="createCategory">
+                                <button class="btn btn-primary" type="button" @click="createCategory" :disabled="!selectedBook">
+                                    <i class="bi bi-folder-plus"></i>
+                                    <span>新建</span>
+                                </button>
+                            </div>
+                            <div class="list" v-if="categories.length">
+                                <button v-for="category in categories" :key="category" class="list-item" :class="{active: selectedCategory === category}" type="button" @click="selectCategory(category)">
+                                    <span>
+                                        <span class="item-title">[[ categoryLabel(category) ]]</span>
+                                        <span class="item-meta">[[ category ]]</span>
+                                    </span>
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div v-else class="empty-state">
+                                <i class="bi bi-folder2"></i>
+                                <strong>暂无分类</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="view-section" :class="{active: view === 'entries'}">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">词条管理</div>
+                                <div class="panel-subtitle">[[ typeLabel(typeName) ]] / [[ selectedBook || '-' ]] / [[ categoryLabel(selectedCategory) ]]</div>
+                            </div>
+                            <button class="btn btn-primary" type="button" @click="openCreateEntry" :disabled="!selectedBook || !selectedCategory">
+                                <i class="bi bi-plus-lg"></i>
+                                <span>新增词条</span>
+                            </button>
+                        </div>
+
+                        <div class="toolbar">
+                            <select class="select" style="max-width: 130px;" v-model="typeName" @change="selectType(typeName)">
+                                <option v-for="option in typeOptions" :key="option.value" :value="option.value">[[ option.label ]]</option>
+                            </select>
+                            <select class="select" style="max-width: 180px;" v-model="selectedBook" @change="selectBook(selectedBook)">
+                                <option v-for="book in library.books" :key="book.name" :value="book.name">[[ book.name ]]</option>
+                            </select>
+                            <select class="select" style="max-width: 180px;" v-model="selectedCategory" @change="loadEntries">
+                                <option v-for="category in categories" :key="category" :value="category">[[ categoryLabel(category) ]]</option>
+                            </select>
+                            <input class="input" style="max-width: 260px;" type="text" v-model.trim="keyword" placeholder="搜索词条" @keyup.enter="loadEntries">
+                            <button class="btn" type="button" @click="loadEntries">
+                                <i class="bi bi-search"></i>
+                                <span>搜索</span>
+                            </button>
+                        </div>
+
+                        <div v-if="entryFormVisible" class="panel" style="box-shadow: none; margin-bottom: 18px;">
+                            <div class="panel-header">
+                                <div class="panel-title">[[ editingWord ? '编辑词条' : '新增词条' ]]</div>
+                                <button class="btn btn-icon" type="button" title="关闭" @click="closeEntryForm">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div class="form-grid" v-for="(row, index) in formRows" :key="index">
+                                <input class="input" type="text" v-model.trim="row.key" placeholder="字段">
+                                <textarea class="textarea" v-model="row.value" placeholder="内容"></textarea>
+                                <button class="btn btn-danger btn-icon" type="button" title="删除字段" @click="removeField(index)" :disabled="formRows.length <= 1">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="form-row" style="justify-content: space-between; margin-top: 14px;">
+                                <button class="btn" type="button" @click="addField">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>字段</span>
+                                </button>
+                                <div class="form-row">
+                                    <button class="btn" type="button" @click="closeEntryForm">取消</button>
+                                    <button class="btn btn-primary" type="button" @click="saveEntry">
+                                        <i class="bi bi-check2"></i>
+                                        <span>保存</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="data-table" v-if="entries.length">
+                            <thead>
+                                <tr>
+                                    <th>词条</th>
+                                    <th>释义</th>
+                                    <th>笔记</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="entry in entries" :key="entry.word">
+                                    <td class="entry-word">[[ entry.word || '-' ]]</td>
+                                    <td class="entry-explain">[[ entry.explain || '-' ]]</td>
+                                    <td class="entry-explain">[[ entry.note || '-' ]]</td>
+                                    <td>
+                                        <span class="table-actions">
+                                            <button class="btn btn-icon" type="button" title="编辑" @click="openEditEntry(entry)">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-icon" type="button" title="删除" @click="deleteEntry(entry)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div v-else class="empty-state">
+                            <i class="bi bi-card-text"></i>
+                            <strong>暂无词条</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="view-section" :class="{active: view === 'users'}">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">管理员账号</div>
+                                <div class="panel-subtitle">当前登录账号</div>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>账号</th><th>角色</th><th>状态</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="entry-word">{{ admin_user or 'admin' }}</td>
+                                    <td>超级管理员</td>
+                                    <td><span class="badge">已登录</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="view-section" :class="{active: view === 'settings'}">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">系统状态</div>
+                                <div class="panel-subtitle">JSON 数据存储</div>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>项目</th><th>当前值</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>接口前缀</td><td>/api/v1/admin</td></tr>
+                                <tr><td>数据类型</td><td>idiom, words</td></tr>
+                                <tr><td>登录保护</td><td><span class="badge">已启用</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
 
-    <!-- 简单的点击空白处收起侧边栏脚本 (适配手机端) -->
+    <script src="/static/JavaScript/vue.js"></script>
     <script>
+        new Vue({
+            el: '#adminApp',
+            delimiters: ['[[', ']]'],
+            data: {
+                API_BASE: '/api/v1/admin',
+                view: 'dashboard',
+                pageTitle: '系统仪表盘',
+                typeName: 'idiom',
+                typeOptions: [
+                    { value: 'idiom', label: '成语' },
+                    { value: 'words', label: '词语' }
+                ],
+                summary: {
+                    entry_count: 0,
+                    book_count: 0,
+                    category_count: 0,
+                    recent_entries: []
+                },
+                library: {
+                    books: []
+                },
+                selectedBook: '',
+                selectedCategory: 'query.json',
+                entries: [],
+                keyword: '',
+                createBookName: '',
+                createCategoryName: '',
+                entryFormVisible: false,
+                editingWord: '',
+                formRows: [],
+                message: '',
+                error: '',
+                loading: false
+            },
+            computed: {
+                selectedBookData() {
+                    return this.library.books.find(book => book.name === this.selectedBook) || null;
+                },
+                categories() {
+                    return this.selectedBookData ? this.selectedBookData.categories : [];
+                }
+            },
+            created() {
+                this.refreshAll();
+            },
+            methods: {
+                async apiRequest(path, options = {}) {
+                    const headers = Object.assign(
+                        { 'Content-Type': 'application/json' },
+                        options.headers || {}
+                    );
+                    const response = await fetch(`${this.API_BASE}${path}`, Object.assign({
+                        credentials: 'same-origin',
+                        headers
+                    }, options));
+
+                    let payload = null;
+                    try {
+                        payload = await response.json();
+                    } catch (error) {
+                        payload = { message: '服务返回了无法解析的数据' };
+                    }
+
+                    if (response.status === 401) {
+                        window.location.href = '/login?next=/admin';
+                        throw new Error('登录已过期');
+                    }
+                    if (!response.ok || (payload && payload.code && payload.code >= 400)) {
+                        throw new Error((payload && payload.message) || '请求失败');
+                    }
+                    return payload.data;
+                },
+                async refreshAll() {
+                    this.loading = true;
+                    this.error = '';
+                    try {
+                        await this.loadSummary();
+                        await this.loadLibrary();
+                        await this.loadEntries();
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadSummary() {
+                    this.summary = await this.apiRequest('/summary');
+                },
+                async loadLibrary() {
+                    const params = new URLSearchParams({ type_name: this.typeName });
+                    this.library = await this.apiRequest(`/library?${params.toString()}`);
+                    if (!this.library.books.length) {
+                        this.selectedBook = '';
+                        this.selectedCategory = '';
+                        this.entries = [];
+                        return;
+                    }
+                    const hasSelectedBook = this.library.books.some(book => book.name === this.selectedBook);
+                    if (!hasSelectedBook) {
+                        this.selectedBook = this.library.books[0].name;
+                    }
+                    this.ensureSelectedCategory();
+                },
+                ensureSelectedCategory() {
+                    const categories = this.categories;
+                    if (!categories.length) {
+                        this.selectedCategory = '';
+                        return;
+                    }
+                    if (!categories.includes(this.selectedCategory)) {
+                        this.selectedCategory = categories.includes('query.json') ? 'query.json' : categories[0];
+                    }
+                },
+                async loadEntries() {
+                    this.error = '';
+                    if (!this.selectedBook || !this.selectedCategory) {
+                        this.entries = [];
+                        return;
+                    }
+                    const params = new URLSearchParams({
+                        type_name: this.typeName,
+                        book: this.selectedBook,
+                        category: this.selectedCategory,
+                        keyword: this.keyword || ''
+                    });
+                    try {
+                        const data = await this.apiRequest(`/entries?${params.toString()}`);
+                        this.entries = data.entries;
+                    } catch (error) {
+                        this.entries = [];
+                        this.showError(error.message);
+                    }
+                },
+                async selectType(typeName) {
+                    this.typeName = typeName;
+                    this.selectedBook = '';
+                    this.selectedCategory = 'query.json';
+                    this.entryFormVisible = false;
+                    await this.loadLibrary();
+                    await this.loadEntries();
+                    await this.loadSummary();
+                },
+                async selectBook(bookName) {
+                    this.selectedBook = bookName;
+                    this.selectedCategory = 'query.json';
+                    this.ensureSelectedCategory();
+                    this.entryFormVisible = false;
+                    await this.loadEntries();
+                },
+                async selectCategory(category) {
+                    this.selectedCategory = category;
+                    this.entryFormVisible = false;
+                    await this.loadEntries();
+                    this.switchView('entries', '词条管理');
+                },
+                async createBook() {
+                    if (!this.createBookName) {
+                        this.showError('书籍名称不能为空');
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const data = await this.apiRequest('/books', {
+                            method: 'POST',
+                            body: JSON.stringify({ type_name: this.typeName, book: this.createBookName })
+                        });
+                        this.createBookName = '';
+                        this.selectedBook = data.book;
+                        this.selectedCategory = 'query.json';
+                        await this.loadLibrary();
+                        await this.loadEntries();
+                        await this.loadSummary();
+                        this.showMessage('书籍已创建');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async createCategory() {
+                    if (!this.selectedBook) {
+                        this.showError('请先选择书籍');
+                        return;
+                    }
+                    if (!this.createCategoryName) {
+                        this.showError('分类名称不能为空');
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const data = await this.apiRequest('/categories', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                type_name: this.typeName,
+                                book: this.selectedBook,
+                                category: this.createCategoryName
+                            })
+                        });
+                        this.createCategoryName = '';
+                        this.selectedCategory = data.category;
+                        await this.loadLibrary();
+                        await this.loadEntries();
+                        await this.loadSummary();
+                        this.showMessage('分类已创建');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                openCreateEntryFromDashboard() {
+                    this.switchView('entries', '词条管理');
+                    this.openCreateEntry();
+                },
+                openCreateEntry() {
+                    this.editingWord = '';
+                    this.formRows = [
+                        { key: 'word', value: '' },
+                        { key: 'explain', value: '' },
+                        { key: 'note', value: '' }
+                    ];
+                    this.entryFormVisible = true;
+                },
+                openEditEntry(entry) {
+                    this.editingWord = String(entry.word || '');
+                    this.formRows = Object.keys(entry).map(key => ({
+                        key,
+                        value: entry[key] == null ? '' : String(entry[key])
+                    }));
+                    if (!this.formRows.length) {
+                        this.formRows = [{ key: 'word', value: '' }];
+                    }
+                    this.entryFormVisible = true;
+                },
+                closeEntryForm() {
+                    this.entryFormVisible = false;
+                    this.editingWord = '';
+                    this.formRows = [];
+                },
+                addField() {
+                    this.formRows.push({ key: '', value: '' });
+                },
+                removeField(index) {
+                    if (this.formRows.length > 1) {
+                        this.formRows.splice(index, 1);
+                    }
+                },
+                formToEntry() {
+                    const entry = {};
+                    this.formRows.forEach(row => {
+                        const key = String(row.key || '').trim();
+                        if (key) {
+                            entry[key] = row.value;
+                        }
+                    });
+                    return entry;
+                },
+                async saveEntry() {
+                    if (!this.selectedBook || !this.selectedCategory) {
+                        this.showError('请选择书籍和分类');
+                        return;
+                    }
+                    const entry = this.formToEntry();
+                    if (!String(entry.word || '').trim()) {
+                        this.showError('词条名称不能为空');
+                        return;
+                    }
+                    const isEdit = Boolean(this.editingWord);
+                    const body = {
+                        type_name: this.typeName,
+                        book: this.selectedBook,
+                        category: this.selectedCategory,
+                        entry
+                    };
+                    if (isEdit) {
+                        body.original_word = this.editingWord;
+                    }
+                    this.loading = true;
+                    try {
+                        await this.apiRequest('/entries', {
+                            method: isEdit ? 'PUT' : 'POST',
+                            body: JSON.stringify(body)
+                        });
+                        this.closeEntryForm();
+                        await this.loadEntries();
+                        await this.loadSummary();
+                        this.showMessage(isEdit ? '词条已更新' : '词条已创建');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async deleteEntry(entry) {
+                    const word = String(entry.word || '').trim();
+                    if (!word) {
+                        this.showError('词条名称不能为空');
+                        return;
+                    }
+                    if (!window.confirm(`删除“${word}”？`)) {
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        await this.apiRequest('/entries', {
+                            method: 'DELETE',
+                            body: JSON.stringify({
+                                type_name: this.typeName,
+                                book: this.selectedBook,
+                                category: this.selectedCategory,
+                                word
+                            })
+                        });
+                        await this.loadEntries();
+                        await this.loadSummary();
+                        this.showMessage('词条已删除');
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async openEntryLocation(entry) {
+                    this.typeName = entry.type_name;
+                    await this.loadLibrary();
+                    this.selectedBook = entry.book;
+                    this.selectedCategory = entry.category;
+                    this.keyword = entry.word || '';
+                    await this.loadEntries();
+                    this.switchView('entries', '词条管理');
+                },
+                searchFromHeader() {
+                    this.switchView('entries', '词条管理');
+                    this.loadEntries();
+                },
+                switchView(view, title) {
+                    this.view = view;
+                    this.pageTitle = title;
+                    this.closeSidebarOnMobile();
+                },
+                toggleSidebar() {
+                    document.getElementById('sidebar').classList.toggle('show');
+                },
+                closeSidebarOnMobile() {
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('show');
+                    }
+                },
+                formatNumber(value) {
+                    return Number(value || 0).toLocaleString('zh-CN');
+                },
+                typeLabel(typeName) {
+                    const option = this.typeOptions.find(item => item.value === typeName);
+                    return option ? option.label : typeName;
+                },
+                categoryLabel(category) {
+                    if (category === 'query.json') return '全部';
+                    if (category === 'default.json') return '默认';
+                    return String(category || '').replace(/\.json$/i, '');
+                },
+                showMessage(message) {
+                    this.message = message;
+                    this.error = '';
+                    window.clearTimeout(this._messageTimer);
+                    this._messageTimer = window.setTimeout(() => {
+                        this.message = '';
+                    }, 2500);
+                },
+                showError(message) {
+                    this.error = message || '请求失败';
+                    this.message = '';
+                }
+            }
+        });
+
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
             const toggleBtn = document.querySelector('.menu-toggle');
-            
-            // 如果点击的不是侧边栏内部，也不是汉堡按钮，且侧边栏正在展示，则收起
-            if (window.innerWidth <= 768 && 
-                !sidebar.contains(event.target) && 
-                !toggleBtn.contains(event.target) && 
-                sidebar.classList.contains('show')) {
+            if (
+                window.innerWidth <= 768 &&
+                sidebar &&
+                toggleBtn &&
+                !sidebar.contains(event.target) &&
+                !toggleBtn.contains(event.target) &&
+                sidebar.classList.contains('show')
+            ) {
                 sidebar.classList.remove('show');
             }
         });
