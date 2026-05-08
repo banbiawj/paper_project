@@ -238,6 +238,16 @@
             margin-left: 4px;
         }
 
+        .login-error {
+            margin-bottom: 24px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background-color: #fef2f2;
+            color: #b91c1c;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
         /* =========================================
            响应式适配 (平板与手机)
            ========================================= */
@@ -304,23 +314,28 @@
                 </div>
 
                 <!-- 纯展示表单 -->
-                <form onsubmit="event.preventDefault();">
+                {% if error %}
+                <div class="login-error" role="alert">{{ error }}</div>
+                {% endif %}
+
+                <form method="post" action="/login">
+                    <input type="hidden" name="next" value="{{ next_url or '/admin' }}">
                     <!-- 账号 -->
                     <div class="form-floating">
-                        <input type="text" id="username" placeholder=" " required>
+                        <input type="text" id="username" name="username" value="{{ username or '' }}" placeholder=" " autocomplete="username" required>
                         <label for="username">账号 / 邮箱</label>
                     </div>
 
                     <!-- 密码 -->
                     <div class="form-floating">
-                        <input type="password" id="password" placeholder=" " required>
+                        <input type="password" id="password" name="password" placeholder=" " autocomplete="current-password" required>
                         <label for="password">密码</label>
                     </div>
 
                     <!-- 操作区 -->
                     <div class="actions">
                         <label class="remember-me">
-                            <input type="checkbox">
+                            <input type="checkbox" name="remember">
                             <span>记住我</span>
                         </label>
                         <a href="#" class="forgot-link">忘记密码？</a>

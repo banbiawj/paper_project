@@ -135,6 +135,28 @@
             color: #6c757d;
         }
 
+        .logout-form {
+            margin-top: 16px;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ebeef5;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .logout-button:hover {
+            border-color: #1a1a1a;
+            color: #1a1a1a;
+        }
+
         /* =========================================
            主内容区 (Main Content)
            ========================================= */
@@ -417,10 +439,13 @@
                 <div class="user-profile">
                     <div class="avatar">AW</div>
                     <div class="user-info">
-                        <span class="user-name">Admin AWJ</span>
+                        <span class="user-name">{{ admin_user or 'Admin AWJ' }}</span>
                         <span class="user-role">超级管理员</span>
                     </div>
                 </div>
+                <form class="logout-form" method="post" action="/logout">
+                    <button class="logout-button" type="submit">退出登录</button>
+                </form>
             </div>
         </aside>
 
