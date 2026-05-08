@@ -520,16 +520,20 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
     {% raw %}
-    <div class="modal-header placeholder-glow">
+    <div class="modal-header" :class="{'placeholder-glow': !errorMessage}">
     <h5 class="modal-title" id="exampleModalLabel">
-        <span class="placeholder col-6 bg-secondary-subtle"></span>
+        <span v-if="!errorMessage" class="placeholder col-6 bg-secondary-subtle"></span>
+        <span v-else>查询失败</span>
     </h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
 
       
       <div class="modal-body">
-        <form>
+        <div v-if="errorMessage" class="alert alert-danger mb-0" role="alert">
+          {{ errorMessage }}
+        </div>
+        <form v-else>
           <div class="email-card-body placeholder-glow">
             <p>
               <span class="placeholder col-4"></span>
@@ -547,7 +551,10 @@
         </form>
       </div>
 
-    <div class="modal-footer placeholder-glow">
+    <div v-if="errorMessage" class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+    </div>
+    <div v-else class="modal-footer placeholder-glow">
         <button type="button" class="btn btn-secondary disabled placeholder col-3"></button>
         <button type="button" class="btn btn-primary disabled placeholder col-3"></button>
     </div>

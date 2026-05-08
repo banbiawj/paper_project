@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import tempfile
 import unittest
 import uuid
 from pathlib import Path
@@ -17,13 +18,27 @@ class AdminApiTest(unittest.TestCase):
         self.workspace_tmp.mkdir(exist_ok=True)
         self.data_root = self.workspace_tmp / f"data-{uuid.uuid4().hex}"
         self.data_root.mkdir()
+        self.db_path = Path(tempfile.gettempdir()) / f"ds-memory-admin-{uuid.uuid4().hex}.sqlite3"
         os.environ["DS_MEMORY_DATA_ROOT"] = str(self.data_root)
+        os.environ["DS_MEMORY_DB_PATH"] = str(self.db_path)
         self._seed_data()
+        from app import storage
+
+        storage.migrate_json_to_sqlite(self.data_root)
+        runtime_root = self.data_root / "empty-runtime"
+        runtime_root.mkdir()
+        os.environ["DS_MEMORY_DATA_ROOT"] = str(runtime_root)
         self.client = TestClient(app)
 
     def tearDown(self):
         os.environ.pop("DS_MEMORY_DATA_ROOT", None)
+        os.environ.pop("DS_MEMORY_DB_PATH", None)
         shutil.rmtree(self.data_root, ignore_errors=True)
+        if self.db_path.exists():
+            try:
+                self.db_path.unlink()
+            except PermissionError:
+                pass
         try:
             self.workspace_tmp.rmdir()
         except OSError:

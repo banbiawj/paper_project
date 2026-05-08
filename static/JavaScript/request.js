@@ -353,6 +353,10 @@ computed: {
           this.loading = true;
 
           try {
+            const query = this.inquireContent.trim();
+            if (!query) {
+              throw new Error("请输入查询内容");
+            }
             const response = await fetch(`${this.API_BASE}/inquire/query`, {
               method: "POST",
               headers: {
@@ -360,24 +364,29 @@ computed: {
               },
               body: JSON.stringify({
                 TypeName: this.TypeName,
-                InquireContent: this.inquireContent
+                InquireContent: query
               })
             });
             
 
             if (!response.ok) {
-              throw new Error("服务器错误: " + response.status);
+              let message = "服务器错误 " + response.status;
+              try {
+                const errorData = await response.json();
+                message = errorData.message || message;
+              } catch (e) {}
+              throw new Error(message);
             }
 
             const data = await response.json();
-            if (data.code === 200) {
+            if (data.code === 200 && data.data && data.data[0]) {
               this.result = data.data[0];
               this.hideModal('query-before-Modal')
               this.showModal('queryModal')
 
               console.log(data.data);
             } else {
-              this.errorMessage = data.message || "未知错误";
+              throw new Error(data.message || "查询结果为空");
             }
           } catch (err) {
             this.errorMessage = "请求失败: " + err.message;

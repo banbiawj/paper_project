@@ -4,6 +4,7 @@ import hmac
 import json
 import os
 import secrets
+import shutil
 import time
 import uuid
 from datetime import datetime
@@ -13,6 +14,8 @@ from urllib.parse import urlencode
 from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.responses import RedirectResponse
+
+from app import storage
 
 load_dotenv()
 
@@ -48,6 +51,35 @@ def _data_root() -> Path:
     return Path(os.getenv("DS_MEMORY_DATA_ROOT", "static/data"))
 
 
+def _user_data_root(user_id: str) -> Path:
+    return _data_root() / "user_data" / user_id
+
+
+def _ensure_user_data_root(user_id: str) -> Path:
+    root = _user_data_root(user_id)
+    root.mkdir(parents=True, exist_ok=True)
+    shared_root = _data_root()
+    for type_name in ("idiom", "words"):
+        source = shared_root / type_name
+        target = root / type_name
+        if target.exists():
+            continue
+        if source.exists():
+            shutil.copytree(source, target)
+        else:
+            target.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _current_data_root(request: Request) -> Path:
+    user = _current_user(request)
+    if user:
+        user_id = str(user.get("user_id", "")).strip()
+        if user_id:
+            return _ensure_user_data_root(user_id)
+    return _data_root()
+
+
 def _users_file() -> Path:
     return _data_root() / "users.json"
 
@@ -57,21 +89,11 @@ def _now_string() -> str:
 
 
 def _read_users() -> list[dict]:
-    path = _users_file()
-    if not path.exists():
-        return []
-    with path.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-    if not isinstance(data, list):
-        raise ValueError("users.json 必须是 JSON 列表")
-    return [user for user in data if isinstance(user, dict)]
+    return storage.list_users()
 
 
 def _write_users(users: list[dict]) -> None:
-    path = _users_file()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as file:
-        json.dump(users, file, ensure_ascii=False, indent=4)
+    storage.replace_users(users)
 
 
 def _public_user(user: dict) -> dict:
@@ -111,23 +133,11 @@ def _verify_password(password: str, password_hash: str) -> bool:
 
 
 def _find_user_by_login(login: str) -> dict | None:
-    value = (login or "").strip()
-    lowered = value.lower()
-    if not value:
-        return None
-    for user in _read_users():
-        username = str(user.get("username", "")).strip()
-        email = str(user.get("email", "")).strip().lower()
-        if username == value or username.lower() == lowered or email == lowered:
-            return user
-    return None
+    return storage.get_user_by_login(login)
 
 
 def _find_user_by_id(user_id: str) -> dict | None:
-    for user in _read_users():
-        if str(user.get("id", "")) == user_id:
-            return user
-    return None
+    return storage.get_user_by_id(user_id)
 
 
 def _create_user(username: str, email: str, password: str) -> dict:
@@ -165,9 +175,7 @@ def _create_user(username: str, email: str, password: str) -> dict:
         "updated_at": now,
         "last_login_at": "",
     }
-    users.append(user)
-    _write_users(users)
-    return user
+    return storage.save_user(user)
 
 
 def _authenticate_user(login: str, password: str) -> tuple[dict | None, str | None]:
@@ -180,14 +188,7 @@ def _authenticate_user(login: str, password: str) -> tuple[dict | None, str | No
 
 
 def _update_user_login(user_id: str) -> None:
-    users = _read_users()
-    now = _now_string()
-    for user in users:
-        if str(user.get("id", "")) == user_id:
-            user["last_login_at"] = now
-            user["updated_at"] = now
-            _write_users(users)
-            return
+    storage.update_user_login(user_id, _now_string())
 
 
 def _create_session_token(username: str, role: str = "admin") -> str:

@@ -1,8 +1,7 @@
 import os
 import json
-from openai import OpenAI,AsyncOpenAI
+from openai import OpenAI
 from dotenv import load_dotenv
-from functools import wraps
 from . import prompt
 
 from pathlib import Path
@@ -16,7 +15,37 @@ BASE_URL = os.getenv("BASE_URL")
 
 
 client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
-def analyse(propmt,query):
+
+
+def _parse_json_object(content):
+    text = (content or "").strip()
+    if not text:
+        raise ValueError("AI returned empty response")
+
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+
+    decoder = json.JSONDecoder()
+    for index, character in enumerate(text):
+        if character != "{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(text[index:])
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(value, dict):
+            raise ValueError("AI response must be a JSON object")
+        return value
+
+    raise ValueError("AI response did not contain a JSON object")
+
+
+def analyse(propmt, query):
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -29,21 +58,19 @@ def analyse(propmt,query):
     # print(result)
     return result
 
-def inquire_idiom(idiom):
-    try:
-        data = analyse(prompt.idiom_inquire,idiom)
-        print (data)
-        data = json.loads(data)
-        result = {'word':idiom ,**data}
 
-        return result
-    except Exception as e:
-        print(f"error:{e}")
+def inquire_idiom(idiom):
+    data = analyse(prompt.idiom_inquire, idiom)
+    data = _parse_json_object(data)
+    result = {"word": idiom, **data}
+
+    return result
+
 
 def inquire_words(words):
-    data = analyse(prompt.idiom_inquire,words)
-    data = json.loads(data)
-    result = {'word':words ,**data}
+    data = analyse(prompt.words_inquire, words)
+    data = _parse_json_object(data)
+    result = {"word": words, **data}
 
     return result
 

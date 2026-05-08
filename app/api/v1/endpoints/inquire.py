@@ -1,99 +1,74 @@
-from typing import Union,Generic, TypeVar
-import uvicorn
-import os
-import json
-from typing import List
-from fastapi import FastAPI,APIRouter, File, UploadFile, HTTPException,Path, Request ,Form
-from pydantic import BaseModel , Field
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse,JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 from enum import Enum
+from typing import Generic, TypeVar
 
-from mylib.Agent import inquire as A
-from mylib.File import JsonOperate as J
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
-IDIOM_PATH ="static/data/idiom"
-WORDS_PATH ="static/data/words"
+from app import storage
+from app.auth import _current_user
+from mylib.Agent import inquire as agent_inquire
 
 
-router =  APIRouter()
-
+router = APIRouter()
 T = TypeVar("T")
+
+IDIOM_PATH = "static/data/idiom"
+WORDS_PATH = "static/data/words"
+
 
 class REST_API_standard(BaseModel, Generic[T]):
     code: int
     message: str
-    data: T  # T 就是泛型参数
+    data: T
+
 
 class ErrorResponse(BaseModel):
     code: int
     message: str
 
 
+class limit(str, Enum):
+    idiom = "idiom"
+    words = "words"
 
-class TextResponse(BaseModel):
-    error: str
-    criterion: str
-    position: str
-
-class Data_File(BaseModel):
-    filename:str
-    saved:str
-
-class UploadStatus(BaseModel):
-    code:int
-    message:str
-    data:Data_File
-
-class limit(str,Enum):
-    idiom="idiom"
-    words="words"
 
 class InquireRequest(BaseModel):
-    TypeName:limit = Field(default=limit.idiom)
-    InquireContent:str
+    TypeName: limit = Field(default=limit.idiom)
+    InquireContent: str
+
+
+def _owner_user_id(request: Request) -> str | None:
+    user = _current_user(request)
+    if not user:
+        return None
+    user_id = str(user.get("user_id", "")).strip()
+    return user_id or None
+
+
+def _type_value(value: limit | str) -> str:
+    return value.value if isinstance(value, limit) else str(value)
 
 
 @router.post("/query", response_model=REST_API_standard)
-async def inquire_idiom(request: InquireRequest):
+async def inquire_idiom(payload: InquireRequest, http_request: Request):
     try:
-        # 从 request 里拿到前端传来的数据
-        query = request.InquireContent
-        type = request.TypeName
-        if type == "idiom":
-            path =IDIOM_PATH
-            path = os.path.join(path,"词库")
-            query_list = J.read_json_file(path,"query")
-            query_result =J.find_in_json(query_list,'word',query)
-            print(f"'{query}'-本地成语查询结果：{query_result}")
-            if query_result !=None:
-                analyse_result = query_result
-            else:
-                analyse_result = A.inquire_idiom(query)
-        elif type == "words":
-            path =WORDS_PATH
-            path = os.path.join(path,"词库")
-            query_list = J.read_json_file(path,"query")
-            query_result =J.find_in_json(query_list,'word',query)
-            print(f"'{query}'-本地词语查询结果：{query_result}")
-            if query_result !=None:
-                analyse_result = query_result
-            else:
-                analyse_result = A.inquire_words(query)
-        # print(analyse_result)
-        list=[]
-        list.append(analyse_result)
-        result = REST_API_standard(
-            code=200,
-            message=("succeed"),
-            data = list
-        )
-        return result
-    except Exception as e:
-        error = ErrorResponse(code=500, message=f"analyse failed: {e}")
-        return JSONResponse(
-            status_code=500,       # <-- HTTP 状态码
-            content=error.model_dump()   # <-- 用 BaseModel 转 dict
-        )
-    
+        query = payload.InquireContent
+        type_name = _type_value(payload.TypeName)
+        owner_user_id = _owner_user_id(http_request)
+        local_result = storage.find_entry_in_type(owner_user_id, type_name, query)
+        if local_result is None and owner_user_id is not None:
+            local_result = storage.find_entry_in_type(None, type_name, query)
+        if local_result is not None:
+            analyse_result = local_result
+        elif type_name == "idiom":
+            analyse_result = agent_inquire.inquire_idiom(query)
+        else:
+            analyse_result = agent_inquire.inquire_words(query)
+        if not isinstance(analyse_result, dict):
+            raise ValueError("AI returned no result")
+
+        return REST_API_standard(code=200, message="succeed", data=[analyse_result])
+    except Exception as exc:
+        error = ErrorResponse(code=500, message=f"analyse failed: {exc}")
+        return JSONResponse(status_code=500, content=error.model_dump())

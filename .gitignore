@@ -3,4 +3,7 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .test-tmp/
+test-write-dir/
 .server-*.log
+static/data/*.sqlite3
+static/data/*.sqlite3-*
