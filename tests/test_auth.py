@@ -361,6 +361,73 @@ class AuthRoutesTest(unittest.TestCase):
             ["query.json", "default.json"],
         )
 
+    def test_compare_requires_at_least_two_entries(self):
+        response = self.client.post(
+            "/api/v1/inquire/compare",
+            json={
+                "TypeName": "words",
+                "items": [{"word": "careful", "explain": "acting with care"}],
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("at least two", response.json()["message"])
+
+    def test_compare_rejects_entry_without_word(self):
+        response = self.client.post(
+            "/api/v1/inquire/compare",
+            json={
+                "TypeName": "words",
+                "items": [
+                    {"word": "careful", "explain": "acting with care"},
+                    {"explain": "wise and cautious"},
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("word", response.json()["message"])
+
+    def test_compare_returns_ai_result_for_selected_entries(self):
+        ai_result = {
+            "summary": "overall difference",
+            "common_points": "both describe careful handling",
+            "differences": [
+                {
+                    "word": "careful",
+                    "focus": "action detail",
+                    "usage": "daily action",
+                    "warning": "not a decision word",
+                },
+                {
+                    "word": "prudent",
+                    "focus": "decision quality",
+                    "usage": "important choice",
+                    "warning": "too formal for small actions",
+                },
+            ],
+            "selection_advice": "Use careful for actions and prudent for decisions.",
+        }
+
+        with patch(
+            "app.api.v1.endpoints.inquire.agent_inquire.compare_entries",
+            return_value=ai_result,
+        ) as mocked:
+            response = self.client.post(
+                "/api/v1/inquire/compare",
+                json={
+                    "TypeName": "words",
+                    "items": [
+                        {"word": "careful", "explain": "acting with care", "note": ""},
+                        {"word": "prudent", "explain": "wise and cautious", "note": ""},
+                    ],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["summary"], "overall difference")
+        mocked.assert_called_once()
+
     def test_inquire_uses_sqlite_local_lookup_after_json_source_removed(self):
         from app import storage
 

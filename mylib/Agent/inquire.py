@@ -75,6 +75,27 @@ def inquire_words(words):
     return result
 
 
+def _compare_prompt(type_name):
+    label = "chengyu" if type_name == "idiom" else "word"
+    return (
+        "You are a Chinese language teacher. Compare the selected "
+        f"{label} entries using only the JSON details provided by the user. "
+        "Return Simplified Chinese in one JSON object with keys: "
+        "summary, common_points, differences, selection_advice. "
+        "differences must be a list of objects with keys: word, focus, usage, warning. "
+        "Do not wrap the answer in prose."
+    )
+
+
+def compare_entries(type_name, items):
+    payload = json.dumps(items, ensure_ascii=False, sort_keys=True)
+    data = analyse(_compare_prompt(type_name), payload)
+    result = _parse_json_object(data)
+    if not isinstance(result.get("differences"), list):
+        raise ValueError("AI comparison must include differences")
+    return result
+
+
 if __name__ =="__main__":
     text =input("请输入要处理的词语:")
     print("开始分析")

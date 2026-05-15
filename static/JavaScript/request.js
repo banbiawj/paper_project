@@ -46,6 +46,10 @@ new Vue({
         result: [],
         errorMessage: "",
         loading: false,
+        selectedCompareItems: {},
+        compareResult: null,
+        compareErrorMessage: "",
+        compareLoading: false,
 
         // 自导入
         diywords:"",
@@ -74,6 +78,9 @@ computed: {
             return Object.entries(this.resultOutput[this.checkindex])
             }
             return []
+    },
+    selectedCompareCount() {
+            return Object.keys(this.selectedCompareItems).length
     },
 
     },
@@ -316,6 +323,7 @@ computed: {
         // 获取数据
         async readData(readFavoriteName) {
             this.FavoriteName = readFavoriteName;
+            this.clearCompareSelection();
             try {
                 const res = await fetch(`${this.API_BASE}/DataOperate/ReadData`, {
                     method: "POST",
@@ -393,6 +401,61 @@ computed: {
           } finally {
             this.loading = false;
           }
+        },
+        compareKey(item) {
+            return item && item.word ? item.word : "";
+        },
+        isCompareSelected(item) {
+            const key = this.compareKey(item);
+            return Boolean(key && this.selectedCompareItems[key]);
+        },
+        toggleCompareSelection(item) {
+            const key = this.compareKey(item);
+            if (!key) {
+                return;
+            }
+            if (this.selectedCompareItems[key]) {
+                this.$delete(this.selectedCompareItems, key);
+            } else {
+                this.$set(this.selectedCompareItems, key, item);
+            }
+        },
+        clearCompareSelection() {
+            this.selectedCompareItems = {};
+        },
+        compareDifferences() {
+            if (this.compareResult && Array.isArray(this.compareResult.differences)) {
+                return this.compareResult.differences;
+            }
+            return [];
+        },
+        async sendCompare() {
+            this.compareResult = null;
+            this.compareErrorMessage = "";
+            const items = Object.values(this.selectedCompareItems);
+            if (items.length < 2) {
+                this.compareErrorMessage = "请至少选择两个词条进行辨析";
+                this.showModal("compareModal");
+                return;
+            }
+            this.compareLoading = true;
+            this.showModal("compareModal");
+            try {
+                const response = await fetch(`${this.API_BASE}/inquire/compare`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({TypeName: this.TypeName, items: items})
+                });
+                const data = await response.json();
+                if (!response.ok || data.code !== 200) {
+                    throw new Error(data.message || `服务端错误 ${response.status}`);
+                }
+                this.compareResult = data.data;
+            } catch (err) {
+                this.compareErrorMessage = "辨析失败: " + err.message;
+            } finally {
+                this.compareLoading = false;
+            }
         },
 
         // 自导入

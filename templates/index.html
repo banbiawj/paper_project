@@ -155,6 +155,15 @@
                 <i class="bi bi-card-text"></i>
                 <span>{{translate(removeAfterLastDot(Favorite))}}</span>
                 </button>
+
+                <button class="toolbar-btn"
+                        type="button"
+                        :class="{'active-btn': selectedCompareCount >= 2}"
+                        @click="sendCompare">
+                <i class="bi bi-columns-gap"></i>
+                <span>AI辨析</span>
+                <span class="badge text-bg-secondary ms-1" style="border-radius:8px">{{selectedCompareCount}}</span>
+                </button>
                 
                 <button class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
                 <i class="bi bi-plus-square"></i>
@@ -174,7 +183,10 @@
                             <div class="card email-card "  >
                                 <div class="email-card-header">
                                     <div class="email-sender">
-                                        <input type="checkbox" class="form-check-input me-2" >
+                                        <input type="checkbox"
+                                               class="form-check-input me-2"
+                                               :checked="isCompareSelected(item)"
+                                               @change="toggleCompareSelection(item)">
                                         <span>{{item['word']}}</span>
                                     </div>
                                     <div class="email-time">
@@ -515,6 +527,75 @@
     </div>
   </div>
 </div>
+<!-- AI 辨析 -->
+<div class="modal fade" id="compareModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="compareModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+    {% raw %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="compareModalLabel">AI辨析</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div v-if="compareLoading" class="placeholder-glow">
+          <p>
+            <span class="placeholder col-5"></span>
+            <span class="placeholder col-8"></span>
+          </p>
+          <p>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-9"></span>
+          </p>
+          <p>
+            <span class="placeholder col-6"></span>
+            <span class="placeholder col-7"></span>
+          </p>
+        </div>
+
+        <div v-else-if="compareErrorMessage" class="alert alert-danger mb-0" role="alert">
+          {{ compareErrorMessage }}
+        </div>
+
+        <div v-else-if="compareResult">
+          <div class="mb-3">
+            <strong class="d-block mb-1">总体结论:</strong>
+            <div class="text-break lh-base">{{ compareResult.summary }}</div>
+          </div>
+
+          <div class="mb-3">
+            <strong class="d-block mb-1">共同点:</strong>
+            <div class="text-break lh-base">{{ compareResult.common_points }}</div>
+          </div>
+
+          <div class="mb-3" v-for="difference in compareDifferences()" :key="difference.word">
+            <div class="border rounded p-3">
+              <strong class="d-block mb-2">{{ difference.word }}</strong>
+              <div class="mb-2"><span class="fw-semibold">侧重点:</span> {{ difference.focus }}</div>
+              <div class="mb-2"><span class="fw-semibold">使用场景:</span> {{ difference.usage }}</div>
+              <div><span class="fw-semibold">易混提醒:</span> {{ difference.warning }}</div>
+            </div>
+          </div>
+
+          <div class="mb-0">
+            <strong class="d-block mb-1">选择建议:</strong>
+            <div class="text-break lh-base">{{ compareResult.selection_advice }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between align-items-center">
+        <div class="text-muted small">已选 {{selectedCompareCount}} 个词条</div>
+        <div>
+          <button type="button" class="btn btn-outline-secondary me-2" @click="clearCompareSelection">清空</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    {% endraw %}
+    </div>
+  </div>
+</div>
+
 <!-- 搜索前 -->
 <div class="modal fade" id="query-before-Modal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="query-before-ModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
